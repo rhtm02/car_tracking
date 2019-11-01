@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="narrow_path_laser_filter">
+	  <rosparam command="load" file="$(find narrow_path)/launch/box_filter.yaml" />
+	  <remap from="scan_filtered" to=" car_tracking_scan_filtered"/>
+  </node>
+
+  <node pkg="platform_control" name="write_serial" type="write_serial"/>
+
+  <include file="$(find lms1xx)/launch/LMS1xx.launch" />
+
+
+
+  <node pkg="car_tracking" name="car_tracking" type="car_tracking.py" output="screen">
+	<!--remap from="raw_obstacles" to="narrow_path_raw_obstacles"/-->
+	  <param name="distance" value="5.0" />
+	  <param name="stop_distance" type="double" value="2.0" />
+	  <param name="accel_speed" value="3" />
+  </node>
+
+  <node name="car_tracking_obstacle_extractor" pkg="obstacle_detector" type="obstacle_extractor_node">
+	<remap from="scan" to="car_tracking_scan_filtered"/>
+	<remap from="raw_obstacles" to="car_tracking_raw_obstacles"/>
+    <param name="active"               value="true"/>
+    <param name="use_scan"             value="true"/>
+    <param name="use_pcl"              value="false"/>
+
+    <param name="use_split_and_merge"    value="true"/>
+    <param name="circles_from_visibles"  value="false"/>
+    <param name="discard_converted_segments" value="false"/>
+    <param name="transform_coordinates"  value="true"/>
+
+    <param name="min_group_points"     value="3"/>
+
+    <param name="max_group_distance"   value="0.1"/>
+    <param name="distance_proportion"  value="0.00628"/>
+    <param name="max_split_distance"   value="0.2"/>
+    <param name="max_merge_separation" value="1.5"/>
+    <param name="max_merge_spread"     value="0.2"/>
+    <param name="max_circle_radius"    value="0.1"/>
+    <param name="radius_enlargement"   value="0.3"/>
+
+    <param name="frame_id"             value="laser"/>
+  </node>
+
+</launch>
+
